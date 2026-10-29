@@ -6,18 +6,12 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      -       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: ''
-    
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -25,20 +19,22 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Check Android project files
+      - name: Install Android SDK tools
         run: |
-          echo "Checking project structure..."
+          sudo apt-get update
+          sudo apt-get install -y android-sdk
+          echo "ANDROID_HOME=/usr/lib/android-sdk" >> "$GITHUB_ENV"
+
+      - name: Check project files
+        run: |
+          pwd
           ls -la
-          echo "Checking Gradle wrapper..."
-          test -f gradlew || { echo "Missing gradlew"; exit 1; }
-          test -d app || { echo "Missing app directory"; exit 1; }
+          test -f gradlew
+          test -d app
 
-      - name: Build APK
+      - name: Build release APK
         run: |
-          chmod +x ./gradlew
+          chmod +x gradlew
           ./gradlew assembleRelease
 
       - name: Upload APK
@@ -47,4 +43,3 @@ jobs:
           name: Kriz-MatchIQ-unsigned-APK
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
-          retention-days: 7
