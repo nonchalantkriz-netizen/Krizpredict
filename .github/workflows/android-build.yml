@@ -1,44 +1,47 @@
 name: Build unsigned APK
 
 on:
-workflow_dispatch:
-push:
-branches:
-- main
+  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
-contents: read
+  contents: read
 
 jobs:
-build:
-runs-on: ubuntu-latest
-steps:
-- name: Checkout repository
-uses: actions/checkout@v4
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  - name: Set up Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: '17'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-  - name: Set up Android SDK
-    uses: android-actions/setup-android@v3
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
-  - name: Build APK
-    run: |
-      if [ -f ./gradlew ]; then
-        chmod +x ./gradlew
-        ./gradlew assembleRelease
-      else
-        echo "Gradle wrapper not found in repository root."
-        exit 1
-      fi
+      - name: Check Android project files
+        run: |
+          echo "Checking project structure..."
+          ls -la
+          echo "Checking Gradle wrapper..."
+          test -f gradlew || { echo "Missing gradlew"; exit 1; }
+          test -d app || { echo "Missing app directory"; exit 1; }
 
-  - name: Upload APK
-    uses: actions/upload-artifact@v4
-    with:
-      name: Kriz-MatchIQ-unsigned-APK
-      path: app/build/outputs/apk/release/*.apk
-      if-no-files-found: error
-      retention-days: 7
+      - name: Build APK
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kriz-MatchIQ-unsigned-APK
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 7
