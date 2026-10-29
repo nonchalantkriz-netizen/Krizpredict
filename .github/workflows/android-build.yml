@@ -3,7 +3,8 @@ name: Build unsigned APK
 on:
 workflow_dispatch:
 push:
-branches: [main]
+branches:
+- main
 
 permissions:
 contents: read
